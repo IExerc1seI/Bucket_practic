@@ -1,0 +1,26 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API",
+  "osm3s": {
+    "timestamp_osm_base": "2024-01-01T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org."
+  },
+  "elements": [
+    {
+      "type": "way",
+      "id": 12345,
+      "bounds": {"minlat": 50.0, "minlon": 30.0, "maxlat": 51.0, "maxlon": 31.0},
+      "nodes": [1, 2, 3, 1],
+      "geometry": [
+        {"lat": 50.0, "lon": 30.0},
+        {"lat": 51.0, "lon": 30.0},
+        {"lat": 51.0, "lon": 31.0},
+        {"lat": 50.0, "lon": 30.0}
+      ],
+      "tags": {
+        "landuse": "landfill",
+        "name": "Test Landfill"
+      }
+    }
+  ]
+}
