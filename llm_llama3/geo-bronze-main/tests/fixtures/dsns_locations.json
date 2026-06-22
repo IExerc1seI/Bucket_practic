@@ -1,0 +1,8 @@
+{
+  "status": "ok",
+  "data": [
+    {"id": 1, "lat": 51.4985, "lon": 31.2850, "type": "mine", "danger_level": 2},
+    {"id": 2, "lat": 51.4921, "lon": 31.2741, "type": "mine", "danger_level": 3}
+  ],
+  "total": 2
+}

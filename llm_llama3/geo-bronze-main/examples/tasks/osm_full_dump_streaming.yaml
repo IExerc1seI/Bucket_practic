@@ -1,0 +1,19 @@
+# Example task: Full OSM bulk extract for Ukraine from Geofabrik
+#
+# Demonstrates:
+# - Streaming download of a large file (~600 MB) via multipart upload to MinIO
+# - HTTPCollector detects streaming=true in source metadata and uses multipart upload
+# - SHA-256 computed incrementally during streaming (no full-file in-memory buffer)
+# - For testing: partial download with timeout is acceptable;
+#   the key requirement is that multipart upload mechanics work correctly
+#
+entity_types:
+  - osm_full_dump
+
+aoi:
+  type: bbox
+  bbox: [22.137, 44.386, 40.220, 52.380]
+
+params:
+  # Force streaming mode for this large file download
+  force_streaming: true

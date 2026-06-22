@@ -1,0 +1,17 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "globalIdFieldName": "",
+  "geometryType": "esriGeometryPoint",
+  "spatialReference": {"wkid": 4326},
+  "fields": [
+    {"name": "OBJECTID", "type": "esriFieldTypeOID", "alias": "OBJECTID"},
+    {"name": "NAME", "type": "esriFieldTypeString", "alias": "Name"}
+  ],
+  "features": [
+    {
+      "attributes": {"OBJECTID": 1, "NAME": "Feature 1"},
+      "geometry": {"x": 30.5, "y": 50.5}
+    }
+  ],
+  "exceededTransferLimit": false
+}

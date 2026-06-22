@@ -1,0 +1,14 @@
+# Example task: OSM landfills in Chernihiv region via Overpass API
+#
+# Demonstrates:
+# - LLM-driven Overpass QL query generation from entity_to_tags map
+# - Manager agent picks up ready-made tags_query for osm_landfills
+#   from source metadata rather than generating one from scratch
+# - POST request with body_template and body_template_vars
+#
+entity_types:
+  - osm_landfills
+
+aoi:
+  type: named
+  name: Чернігівська область
