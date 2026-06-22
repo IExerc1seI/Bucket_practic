@@ -1,0 +1,17 @@
+# Example task: Ukrhydrometcentr station network across all of Ukraine
+#
+# Demonstrates:
+# - JS-wrapped JSON format (js-wrapped-json decoder_hint)
+# - Multiple entity types from a single source (hydro_posts, meteo_stations, radio_posts)
+# - Bronze stores raw .js files as-is; silver layer handles extraction
+#
+entity_types:
+  - meteo_stations
+  - hydro_posts
+  - radio_posts
+
+aoi:
+  type: bbox
+  bbox: [22.137, 44.386, 40.220, 52.380]
+
+params: {}

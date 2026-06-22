@@ -1,0 +1,189 @@
+# ============================================================
+# geo-bronze source registry
+# Each entry is a declarative description of a data source.
+# No code per-source: everything is driven by protocol_family
+# and metadata. This file is the single source of truth.
+# ============================================================
+
+sources:
+
+  # ---------- DSNS — Mine Clearance Activity ----------
+
+  - source_id: dsns-mine-rest
+    name: DSNS — REST API of the mine clearance activity service
+    protocol_family: http
+    endpoint: https://mine.dsns.gov.ua
+    entity_types: [vnp_reports, vnp_dictionary, service_info]
+    license: open-gov-data-ua
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      docs: "Three public endpoints without authorization (migrated from gisportal.fms.dsns.gov.ua)"
+      endpoints:
+        - { path: /api/info/,     entity: service_info,   decoder_hint: json-generic }
+        - { path: /api/vnpInfo/,  entity: vnp_dictionary, decoder_hint: json-generic }
+        - { path: /api/location/, entity: vnp_reports,    decoder_hint: json-points }
+      pagination: none
+      notes: "On /api/location/ returns ~30k hazard records as one JSON. Expect large payload."
+
+  - source_id: dsns-mine-tiles
+    name: DSNS — VectorTileServer of dangerous territories
+    protocol_family: tile
+    endpoint: https://gisportal.fms.dsns.gov.ua/portal/sharing/servers/e528b9c9059a49b2812a647b5f7c06f4/rest/services/Hosted/MineWebOpenPart/VectorTileServer
+    entity_types: [mine_danger_zones]
+    license: open-gov-data-ua
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      tile_format: mvt
+      tile_url_template: "{endpoint}/tile/{z}/{y}/{x}.pbf"
+      axis_order: zyx
+      zoom_range: [0, 11]
+      projection: EPSG:3857
+      layers: [general_danger, confirmed_danger]
+      notes: "ArcGIS VectorTileServer without authorization. URL template uses {z}/{y}/{x}."
+
+  # ---------- Ukrhydrometcentr ----------
+
+  - source_id: meteo-stations-js
+    name: Ukrhydrometcentr — station network (JS files)
+    protocol_family: http
+    endpoint: https://www.meteo.gov.ua/ua
+    entity_types: [hydro_posts, meteo_stations, radio_posts]
+    license: open-gov-data-ua
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      files:
+        - { path: /_hydro-posts.js,    entity: hydro_posts,    decoder_hint: js-wrapped-json }
+        - { path: /_meteo-stations.js, entity: meteo_stations, decoder_hint: js-wrapped-json }
+        - { path: /_radio-posts.js,    entity: radio_posts,    decoder_hint: js-wrapped-json }
+      notes: "JS constants `const X = {...};`. Raw .js files stored in bronze as-is; unpacking is silver layer work. DISABLED 2026-06: all three .js files return 404 — station data is now loaded dynamically by the site with no public static replacement found."
+
+  - source_id: meteo-weather-api
+    name: Ukrhydrometcentr — hourly weather forecast
+    protocol_family: http
+    endpoint: https://www.meteo.gov.ua/fmi.json
+    entity_types: [hourly_weather_forecast]
+    license: open-gov-data-ua
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      query_template:
+        action: getCityWeather
+        lang: ua
+      required_params: [city, region]
+      decoder_hint: json-weather-fmi
+      notes: "city and region are arbitrary names chosen by LLM Manager based on task.aoi."
+
+  - source_id: meteo-fire-rasters
+    name: Ukrhydrometcentr — fire danger raster maps
+    protocol_family: http
+    endpoint: https://www.meteo.gov.ua
+    entity_types: [fire_danger_raster]
+    license: open-gov-data-ua
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      files:
+        - { path: /f/fire/Fire_Current.png,       time_offset_days: 0, kind: actual }
+        - { path: /f/fire/Fire_Forecast_now.png,  time_offset_days: 0, kind: forecast }
+        - { path: /f/fire/Fire_Forecast_1.png,    time_offset_days: 1, kind: forecast }
+        - { path: /f/fire/Fire_Forecast_2.png,    time_offset_days: 2, kind: forecast }
+        - { path: /f/fire/Fire_Forecast_3.png,    time_offset_days: 3, kind: forecast }
+      decoder_hint: png-with-bbox-metadata
+      bbox_override: [22.137, 44.386, 40.220, 52.380]
+      requires_manual_georeferencing: true
+      update_schedule: daily
+      notes: |
+        PNG without embedded georeferencing. bbox is static — maps cover all of Ukraine
+        in a fixed frame. Silver layer uses bbox_override to convert to GeoTIFF.
+        WARNING: Fire_Current.png and Fire_Forecast_now.png are served with JPEG encoding
+        (magic bytes ffd8ff) despite .png extension and image/png Content-Type header.
+        Silver layer decoder must detect actual encoding by magic bytes, not file extension.
+
+  - source_id: visicom-basemap
+    name: Visicom — base raster layer (XYZ)
+    protocol_family: tile
+    endpoint: https://{subdomain}.visicom.ua/2.0.0/world,ua/base
+    entity_types: [basemap_raster]
+    license: visicom-tos
+    enabled: false
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      tile_format: png
+      tile_url_template: "{endpoint}/{z}/{x}/{y}.png?key={api_key}"
+      axis_order: zxy
+      zoom_range: [0, 19]
+      projection: EPSG:3857
+      subdomains: [tms1, tms2, tms3]
+      api_key_env: VISICOM_API_KEY
+      notes: "Round-robin across three subdomains. Key from env VISICOM_API_KEY."
+
+  # ---------- OpenStreetMap ----------
+
+  - source_id: osm-overpass
+    name: OpenStreetMap — Overpass API
+    protocol_family: http
+    endpoint: https://overpass-api.de/api/interpreter
+    entity_types:
+      - osm_landfills
+      - osm_brownfields
+      - osm_abandoned_buildings
+      - osm_ruins
+      - osm_military
+      - osm_farmland
+      - osm_commercial
+      - osm_custom
+    license: ODbL-1.0
+    enabled: true
+    spatial_coverage: { type: global }
+    metadata:
+      method: POST
+      body_template: |
+        [out:json][timeout:60];
+        area["name"="{area_name}"]->.searchArea;
+        ({tags_query});
+        out geom;
+      decoder_hint: overpass-json
+      rate_limit_warning: "Public server is often overloaded. Local deployment recommended for production."
+      entity_to_tags:
+        osm_landfills: 'way["landuse"="landfill"](area.searchArea); relation["landuse"="landfill"](area.searchArea);'
+        osm_brownfields: 'way["landuse"="brownfield"](area.searchArea);'
+        osm_abandoned_buildings: 'way["building"="abandoned"](area.searchArea); way["abandoned"="yes"](area.searchArea);'
+        osm_ruins: 'way["ruins"="yes"](area.searchArea); way["historic"="ruins"](area.searchArea);'
+        osm_military: 'way["landuse"="military"](area.searchArea); relation["landuse"="military"](area.searchArea);'
+        osm_farmland: 'way["landuse"="farmland"](area.searchArea); relation["landuse"="farmland"](area.searchArea);'
+        osm_commercial: 'way["landuse"="commercial"](area.searchArea); relation["landuse"="commercial"](area.searchArea);'
+
+  - source_id: osm-tiles-ua
+    name: OpenStreetMap Ukraine — raster tiles (osm-bright)
+    protocol_family: tile
+    endpoint: https://tile.openstreetmap.org.ua/styles/osm-bright
+    entity_types: [basemap_raster]
+    license: ODbL-1.0
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      tile_format: png
+      tile_url_template: "{endpoint}/{z}/{x}/{y}.png"
+      axis_order: zxy
+      zoom_range: [0, 18]
+      projection: EPSG:3857
+
+  - source_id: osm-geofabrik-ukraine
+    name: OpenStreetMap — Geofabrik bulk extracts (Ukraine)
+    protocol_family: http
+    endpoint: https://download.geofabrik.de/europe/ukraine
+    entity_types: [osm_full_dump]
+    license: ODbL-1.0
+    enabled: true
+    spatial_coverage: { type: country, code: UA }
+    metadata:
+      files:
+        - { path: -latest.osm.pbf,      decoder_hint: osm-pbf,       kind: pbf }
+        - { path: -latest-free.shp.zip, decoder_hint: shapefile-zip, kind: shapefile }
+      streaming: true
+      update_schedule: daily
+      size_estimate_mb: 600
+      notes: "Large extracts. HTTPCollector streams to MinIO via multipart upload."

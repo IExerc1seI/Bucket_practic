@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WFS_Capabilities version="2.0.0" xmlns="http://www.opengis.net/wfs/2.0" xmlns:ows="http://www.opengis.net/ows/1.1">
+  <ows:ServiceIdentification>
+    <ows:Title>Test WFS Service</ows:Title>
+    <ows:ServiceType>WFS</ows:ServiceType>
+  </ows:ServiceIdentification>
+</WFS_Capabilities>

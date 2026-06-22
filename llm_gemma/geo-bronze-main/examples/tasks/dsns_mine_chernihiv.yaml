@@ -1,0 +1,18 @@
+# Example task: DSNS mine threats for Chernihiv region
+#
+# Demonstrates:
+# - Working with axis_order: zyx (dsns-mine-tiles source)
+# - Combining HTTP (JSON points) and Tile (MVT polygons) sources
+# - Ukrainian government open data via two different protocol families
+#
+entity_types:
+  - mine_danger_zones
+  - vnp_reports
+
+aoi:
+  type: named
+  name: Чернігівська область
+
+params:
+  # Manager agent hint: prefer high-resolution tiles
+  preferred_zoom: 10
